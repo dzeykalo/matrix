@@ -1,12 +1,12 @@
 #include <iostream>
 #include "matrix.h"
 
-template <typename T>
+/*template <typename T>
 std::ostream &operator<<(std::ostream &os, matrix_mmm<T> c)
 {
   auto a = c.get();
   os << a;
-}
+}*/
 
 int main()
 {

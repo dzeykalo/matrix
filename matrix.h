@@ -2,36 +2,36 @@
 #include <vector>
 
 template <typename T>
-class matrix_mmm
+class v_matrix
+{
+public:
+  virtual T operator[](T n) = 0;
+};
+
+template <typename T>
+class pp_matrix
 {
 private:
-  T& mm;
+  T& m;
 public:
-  matrix_mmm(T& r) : mm(r) {}
-  T operator=(T val)
-  {
-    mm = val;
-    return mm;
-  }
-  T get()
-  {
-    return mm;
+  pp_matrix(T& r) : m(r) {}
+  T& operator=(T val){
+    return m = val;
   }
 };
 
 template <typename T>
-class matrix_mm
+class p_matrix : public v_matrix<T>
 {
 private:
-  std::vector<T>& mm;
+  std::vector<T>& m;
 public:
-  matrix_mm(std::vector<T>& r) : mm(r) {}
-  matrix_mmm<T> operator[](unsigned int y)
-  {
-    return mm.at(y);
+  p_matrix(std::vector<T>& r) : m(r) {}
+  T operator[](unsigned int n){
+    return m.at(n);
   }
-
 };
+
 
 template <typename T, T value>
 class matrix
@@ -53,9 +53,9 @@ public:
   {
     return static_cast<T>(m.size());
   }
-  matrix_mm<T> operator[](unsigned int x)
+  p_matrix<T> operator[](unsigned int x)
   {
-    return matrix_mm<T>(m.at(x));
+    return p_matrix<T>(m.at(x));
   }
 
 };
