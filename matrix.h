@@ -2,61 +2,54 @@
 #include <vector>
 
 template <typename T>
-class v_matrix
-{
-public:
-  virtual T operator[](T n) = 0;
-};
-
-template <typename T>
-class pp_matrix
+class resizer
 {
 private:
-  T& m;
+  std::vector<T>& v;
 public:
-  pp_matrix(T& r) : m(r) {}
-  T& operator=(T val){
-    return m = val;
+  resizer(std::vector<T>& r) : v(r) {}
+  void resize(unsigned int size, T default_val){
+    v.resize(size+1, default_val);
   }
 };
-
-template <typename T>
-class p_matrix : public v_matrix<T>
-{
-private:
-  std::vector<T>& m;
-public:
-  p_matrix(std::vector<T>& r) : m(r) {}
-  T operator[](unsigned int n){
-    return m.at(n);
-  }
-};
-
 
 template <typename T, T value>
 class matrix
 {
 private:
   std::vector<std::vector<T>> m;
-  T default_val = value;
+  T def_val;
   size_t count;
 public:
-  matrix(unsigned int x, unsigned int y): count(0)
+  matrix(unsigned int x, unsigned int y): count(0), def_val(value)
   {
     m.resize(x, std::vector<T>(y,value));
   }
-  matrix(): count(0)
-  {
-    m.resize(100, std::vector<T>(100,value));
-  }
+  matrix(): count(0), def_val(value){}
   T size()
   {
-    return static_cast<T>(m.size());
+    return m.size();
   }
-  p_matrix<T> operator[](unsigned int x)
-  {
-    return p_matrix<T>(m.at(x));
+  class p_matrix{
+  private:
+    std::vector<T>& v;
+    T def_val;
+  public:
+    p_matrix(std::vector<T>& r, T dv) : v(r), def_val(dv) {}
+    T& operator[](unsigned int y){
+      if (y >= v.size()){
+        resizer<T> rv(v);
+        rv.resize(y, def_val);
+      }
+      return v.at(y);
+    }
+  };
+  p_matrix operator[](unsigned int x){
+    if (x >= m.size()){
+      resizer<std::vector<T>> v(m);
+      v.resize(x, std::vector<T>());
+    }
+    return p_matrix(m.at(x), def_val);
   }
-
 };
 
