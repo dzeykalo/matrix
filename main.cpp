@@ -2,10 +2,18 @@
 #include "matrix.h"
 #include <cassert>
 
+
 int main()
 {
+  /*Matrix<int, -1> m;
+  int a = m[1][1];
+  m[1][2] = 5;
+  std::cout << m.size() << std::endl;
+  std::cout << m[1][2] << std::endl;
+
+  return 0;*/
   {
-    matrix<int, -1> m;
+    Matrix<int, -1> m;
     assert(m.size() == 0);
 
     auto a = m[0][0];
@@ -18,7 +26,7 @@ int main()
   }
   {
     int N = 10;
-    matrix<int, 0> m;
+    Matrix<int, 0> m;
     for (int i = 0; i < N; i++){
       m[i][i] = m[N - 1 - i][i] = i;
     }
@@ -32,6 +40,12 @@ int main()
       }
       std::cout << std::endl;
     }
+    std::cout << "Matrix size = " << m.size() << std::endl;
+    for(auto el: m)
+    {
+      std::cout << "[" << el.x << "][" << el.y << "] = " << el.value << std::endl;
+    }
+
   }
     return 0;
 }

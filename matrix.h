@@ -15,59 +15,72 @@ public:
 };
 
 template <typename T>
-class v_matrix{
-private:
-    std::vector<T>& v;
-    T def_val;
-public:
-    v_matrix(std::vector<T>& r, T dv) : v(r), def_val(dv){}
-    T& operator[](unsigned int y){
-      if (y >= v.size()){
-        resizer<T> rv(v);
-        rv.resize(y, def_val);
-      }
-      return v.at(y);
-    }
+struct element
+{
+  int x;
+  int y;
+  T value;
 };
-
 template <typename T, T value>
-class matrix
+class Matrix
 {
 private:
-  std::vector<std::vector<T>> m;
+  std::vector<element<T>> m;
   T def_val;
-  size_t count;
-  bool ask;
 public:
-  matrix(unsigned int x, unsigned int y): count(0), def_val(value), ask(false)
-  {
-    m.resize(x, std::vector<T>(y,value));
-  }
-  matrix(): count(0), def_val(value), ask(false){}
-  void counter(){count++;}
-  size_t size(){
-    if (!ask) {return count;}
-    ask = false;
-    count = 0;
-    std::for_each(m.begin(),m.end(),[&](auto v)
-    {
-      count+=std::count_if(v.begin(), v.end(), [=](int i) {return i != def_val;});
-    });
-    return count;
-  }
-  v_matrix<T> operator[](unsigned int x){
-    ask = true;
-    if (x >= m.size()){
-      resizer<std::vector<T>> v(m);
-      v.resize(x, std::vector<T>());
-    }
-    return v_matrix<T>(m.at(x), def_val);
-  }
-  class iterator{
-  private:
-      std::vector<T> v;
-  public:
-      iterator(std::vector<T> r):v(r){}
+  Matrix():def_val(value){
+    element<T> el;
+    el.x = el.y = -1; el.value = def_val;
+    m.push_back(el);
   };
+  size_t size() {
+    if (m.back().value != def_val){
+      element<T> el;
+      el.x = el.y = -1; el.value = def_val;
+      m.push_back(el);
+    }
+    return m.size()-1;
+  }
+
+  class access{
+  private:
+    std::vector<element<T>>& v;
+    T& dv;
+    unsigned int x;
+  public:
+    access(std::vector<element<T>>& r, T& def_val, unsigned int _x) : v(r), dv(def_val), x(_x){}
+    T& operator[](unsigned int y){
+      if (v.back().value != dv){
+        element<T> el;
+        el.x = -1; el.y = -1; el.value = dv;
+        v.push_back(el);
+      }
+      auto result = std::find_if(v.begin(), v.end(), [=](element<T> el){ return (el.x == x && el.y == y && el.value != dv);});
+      if (result != v.end()){
+        return (*result).value;
+      }
+      v.back().x = x; v.back().y = y;
+      return v.back().value;
+    }
+  };
+  access operator[](unsigned int x){
+    return access(m,def_val,x);
+  }
+
+  class Iterator{
+  private:
+    typename std::vector<element<T>>::iterator data;
+  public:
+    Iterator(typename std::vector<element<T>>::iterator d): data(d){};
+    element<T>& operator [](int n){ return data[n];}
+    element<T>& operator *(){ return *data;}
+    Iterator operator++(){return data++;}
+    Iterator operator++(int){return data++;}
+    bool operator!=(const Iterator &itr){return data != itr.data;}
+    bool operator==(const Iterator &itr){return data == itr.data;}
+  };
+
+  Iterator begin(){return m.begin();}
+  Iterator end(){return m.end()-1;}
 };
 
