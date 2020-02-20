@@ -5,12 +5,13 @@
 template <typename T>
 struct element
 {
-  int x;
-  int y;
+  std::vector<int> n;
   T value;
-  element():x(-1), y(-1), value(0){};
-  element(int _x, int _y, T _value):x(_x), y(_y), value(_value){};
-  element(T _value):x(-1), y(-1), value(_value){};
+  element():n(2,-1), value(0){};
+  element(int x, int y, T _value): value(_value){
+    n = {x, y};
+  };
+  element(T _value):n(2,-1), value(_value){};
 };
 
 template <typename T, T DefValue>
@@ -32,7 +33,7 @@ public:
     }
 };
 
-template <typename T, T DefValue>
+template <typename T, T DefValue, size_t Size = 2>
 class Matrix
 {
 private:
@@ -48,25 +49,46 @@ public:
     return m.size()-1;
   }
 
-  class access{
+  template<size_t I, typename Enable = void>
+  class access;
+
+  template <size_t I>
+  class access<I, typename std::enable_if< ( 1 >= I ) >::type>{
   private:
     std::vector<element<T>>& v;
-    unsigned int x;
+    std::vector<int> n;
   public:
-    access(std::vector<element<T>>& r, unsigned int _x) : v(r), x(_x){}
-    T& operator[](unsigned int y){
+    access(std::vector<element<T>>& r, std::vector<int>& _n) : v(r), n(_n){}
+    T& operator[](unsigned int x){
       PushDef<T,DefValue> Push(v);
       Push.Try();
-      auto result = std::find_if(v.begin(), v.end(), [=](element<T> el){ return (el.x == x && el.y == y && el.value != DefValue);});
+      n.push_back(x);
+      auto result = std::find_if(v.begin(), v.end(), [&](element<T> el){ return std::equal( n.begin(), n.end(), el.n.begin() ); });
       if (result != v.end()){
         return (*result).value;
       }
-      v.back().x = x; v.back().y = y;
+      v.back().n = std::move(n);
       return v.back().value;
     }
   };
-  access operator[](unsigned int x){
-    return access(m, x);
+
+  template <size_t I>
+  class access<I, typename std::enable_if< ( 1 < I ) >::type>{
+  private:
+    std::vector<element<T>>& v;
+    std::vector<int> n;
+  public:
+    access(std::vector<element<T>>& r, std::vector<int>& _n) : v(r), n(_n){}
+    auto operator[](unsigned int y){
+      n.push_back(y);
+      return access<I-1>(v, n);
+    }
+  };
+
+  auto operator[](unsigned int x){
+    std::vector<int> n;
+    n.push_back(x);
+    return access<Size-1>(m, n);
   }
 
   class Iterator{

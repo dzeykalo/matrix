@@ -5,14 +5,8 @@
 
 int main()
 {
-  /*Matrix<int, -1> m;
-  int a = m[1][1];
-  m[1][2] = 5;
-  std::cout << m.size() << std::endl;
-  std::cout << m[1][2] << std::endl;
-
-  return 0;*/
   {
+    ///######## initial check ########///
     Matrix<int, -1> m;
     assert(m.size() == 0);
 
@@ -25,6 +19,7 @@ int main()
     assert(m.size() == 1);
   }
   {
+    ///######## filling ########///
     int N = 10;
     Matrix<int, 0> m;
     for (int i = 0; i < N; i++){
@@ -43,9 +38,24 @@ int main()
     std::cout << "Matrix size = " << m.size() << std::endl;
     for(auto el: m)
     {
-      std::cout << "[" << el.x << "][" << el.y << "] = " << el.value << std::endl;
+      for(auto n: el.n)
+        std::cout << "[" << n << "]";
+      std::cout << " = " << el.value << std::endl;
     }
 
   }
-    return 0;
+  {
+    ///######## initial check N measure ########///
+    Matrix<int, -1, 4> m;
+    assert(m.size() == 0);
+
+    auto a = m[0][0][0][0];
+    assert(a == -1);
+    assert(m.size() == 0);
+
+    m[100][100][100][100] = 314;
+    assert(m[100][100][100][100] == 314);
+    assert(m.size() == 1);
+  }
+  return 0;
 }
