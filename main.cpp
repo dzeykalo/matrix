@@ -31,7 +31,7 @@ int main()
         m[i][j] = m[i+1][j+1] = 0;
       }
     }
-    
+
     for (int i = 1; i <= 8; i++)
     {
       for (int j = 1; j <= 8; j++)
@@ -44,9 +44,9 @@ int main()
     std::cout << "Matrix size = " << m.size() << std::endl;
     for(auto el: m)
     {
-      for(auto n: el.n)
+      for(auto n: el.first)
         std::cout << "[" << n << "]";
-      std::cout << " = " << el.value << std::endl;
+      std::cout << " = " << el.second << std::endl;
     }
 
   }

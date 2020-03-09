@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <algorithm>
+#include <map>
 
 template <typename T>
 struct element
@@ -18,18 +19,22 @@ template <typename T, T DefValue>
 class PushDef
 {
 private:
-    std::vector<element<T>>& v;
+    std::map<std::vector<int>,T>& map;
+    element<T>& buff;
 public:
-    PushDef(std::vector<element<T>>& r) : v(r) {
+    PushDef(std::map<std::vector<int>,T>& r, element<T>& _b) : map(r), buff(_b) {
     }
     void Def(){
-      element<T> el(DefValue);
-      v.push_back(el);
+      buff.n.clear();
+      buff.value = DefValue;
+    }
+    void Lock(){
+      map[buff.n] = buff.value;
     }
     void Try(){
-      if (v.back().value != DefValue){
-        Def();
-      }
+      if (buff.value != DefValue)
+        Lock();
+      Def();
     }
 };
 
@@ -37,16 +42,17 @@ template <typename T, T DefValue, size_t Size = 2>
 class Matrix
 {
 private:
-  std::vector<element<T>> m;
+  element<T> buffer;
+  std::map<std::vector<int>,T> m;
 public:
-  Matrix():m(){
-    PushDef<T,DefValue> Push(m);
+  Matrix():buffer(),m(){
+    PushDef<T,DefValue> Push(m, buffer);
     Push.Def();
   };
   size_t size() {
-    PushDef<T,DefValue> Push(m);
+    PushDef<T,DefValue> Push(m, buffer);
     Push.Try();
-    return m.size()-1;
+    return m.size();
   }
 
   template<size_t I, typename Enable = void>
@@ -55,49 +61,49 @@ public:
   template <size_t I>
   class access<I, typename std::enable_if< ( 1 >= I ) >::type>{
   private:
-    std::vector<element<T>>& v;
-    std::vector<int> n;
+    std::map<std::vector<int>,T>& map;
+    element<T>& buff;
   public:
-    access(std::vector<element<T>>& r, std::vector<int>& _n) : v(r), n(_n){}
+    access(std::map<std::vector<int>,T>& r, element<T>& _b) : map(r), buff(_b){}
     T& operator[](unsigned int x){
-      PushDef<T,DefValue> Push(v);
-      Push.Try();
-      n.push_back(x);
-      auto result = std::find_if(v.begin(), v.end(), [&](element<T> el){ return std::equal( n.begin(), n.end(), el.n.begin() ); });
-      if (result != v.end()){
-        return (*result).value;
+      buff.n.push_back(x);
+
+      try{
+        return map.at(buff.n);
       }
-      v.back().n = std::move(n);
-      return v.back().value;
+      catch (std::out_of_range){
+        return buff.value;
+      }
     }
   };
 
   template <size_t I>
   class access<I, typename std::enable_if< ( 1 < I ) >::type>{
   private:
-    std::vector<element<T>>& v;
-    std::vector<int> n;
+    std::map<std::vector<int>,T>& map;
+    element<T>& buff;
   public:
-    access(std::vector<element<T>>& r, std::vector<int>& _n) : v(r), n(_n){}
+    access(std::map<std::vector<int>,T>& r, element<T>& _b) : map(r), buff(_b){}
     auto operator[](unsigned int y){
-      n.push_back(y);
-      return access<I-1>(v, n);
+      buff.n.push_back(y);
+      return access<I-1>(map, buff);
     }
   };
 
   auto operator[](unsigned int x){
-    std::vector<int> n;
-    n.push_back(x);
-    return access<Size-1>(m, n);
+    PushDef<T,DefValue> Push(m, buffer);
+    Push.Try();
+    buffer.n.push_back(x);
+    return access<Size-1>(m, buffer);
   }
 
   class Iterator{
   private:
-    typename std::vector<element<T>>::iterator data;
+    typename std::map<std::vector<int>,T>::iterator data;
   public:
-    Iterator(typename std::vector<element<T>>::iterator d): data(d){};
+    Iterator(typename std::map<std::vector<int>,T>::iterator d): data(d){};
     element<T>& operator [](int n){ return data[n];}
-    element<T>& operator *(){ return *data;}
+    auto& operator *(){ return *data;}
     Iterator operator++(){return data++;}
     Iterator operator++(int){return data++;}
     bool operator!=(const Iterator &itr){return data != itr.data;}
@@ -105,6 +111,6 @@ public:
   };
 
   Iterator begin(){return m.begin();}
-  Iterator end(){return m.end()-1;}
+  Iterator end(){return m.end();}
 };
 
