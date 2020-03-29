@@ -31,9 +31,18 @@ public:
     void Lock(){
       map[buff.n] = buff.value;
     }
+    void Erase(){
+      try{
+        if (map.at(buff.n) == DefValue)
+          map.erase(buff.n);
+      }
+      catch(std::out_of_range) {}
+    }
     void Try(){
       if (buff.value != DefValue)
         Lock();
+      else if (!buff.n.empty())
+        Erase();
       Def();
     }
 };
